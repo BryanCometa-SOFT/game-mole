@@ -75,7 +75,7 @@
   //Permite el cambio del nivel
   function changeLevel() {
     //Almaceno el nuevo nivel en el local storage
-    localStorage.setItem('moleLevelId', selectedLevelId)
+    localStorage.setItem('moleLevelId', selectedLevelId.value)
 
    //Inicio el juego
     startMoleInterval();
