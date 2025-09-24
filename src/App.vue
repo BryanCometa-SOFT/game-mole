@@ -1,7 +1,5 @@
 <script setup>
   import { ref, onMounted, watch } from "vue";
-  import hammerUpImg from '@/assets/img/hammer.png'
-  import hammerDownImg from '@/assets/img/hammer-down.png'
 
   // Variables reactivas del componente
   const totalItems = ref(12);
@@ -111,32 +109,17 @@
     //Inicio el juego
     startMoleInterval();
   })
-
 </script>
 
 <template>
   <div class="img-base-background no-select custom-cursor">
     <div class="overlay" @click="playMusic" @touchstart="playMusic">
-
-      <!-- <img
-        @mousedown="hammerDown"
-        @mouseup="hammerUp"
-        @click="failAtack()"
-        :src="hammerImg"
-        width="250px"
-        style="z-index: 2;"
-        :style="{ position: 'fixed', top: hammerY + 'px', left: hammerX + 'px', transform: 'translate(-50%, -50%)' }"
-        class="animate-pulse"
-      /> -->
-          <!-- <div @mousemove="moveHammer"></div> -->
-
       <div>
         <audio ref="audio" loop>
           <source src="@/assets/sounds/music-mole.mp3" type="audio/mpeg">
           Tu navegador no soporta audio
         </audio>
         
-
         <div class="container-fluid">
             <div class="row mt-2">
               <div class="col-12 text-center">
@@ -214,14 +197,6 @@
   margin: 0;
 }
 
-.custom-cursor {
-  cursor: url('@/assets/img/hammer.png'), auto;
-}
-
-.clicked-cursor {
-  cursor: url('@/assets/img/hammer-down.png'), auto;
-}
-
 .img-base-background {
   position: fixed;    
   top: 0;
@@ -236,8 +211,7 @@
 }
 
 .overlay {
-  position: relative;
-     
+  position: relative;    
 }
 
 /* Animación "pop" */
@@ -293,5 +267,4 @@
     width: 25%;
   }
 }
-
 </style>
