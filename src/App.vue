@@ -1,5 +1,8 @@
 <script setup>
   import { ref, onMounted, watch } from "vue";
+  import hammerUpImg from '@/assets/img/hammer.png'
+  import hammerDownImg from '@/assets/img/hammer-down.png'
+
 
   // Variables reactivas del componente
   const totalItems = ref(12);
@@ -7,7 +10,13 @@
   // número actual del topo (reactivo)
   const currentMole = ref(null);
 
-  let totalDeathMole = 0;
+  const totalDeathMole = ref(0);
+  const totalFailMole = ref(0);
+
+  // const hammerX = ref(0)
+  // const hammerY = ref(0)
+
+  // const hammerImg = ref(hammerUpImg)
 
   //Intervalos
   let intervalId = null
@@ -17,18 +26,41 @@
     return Math.floor(Math.random() * totalItems.value) + 1
   }
 
+
+  // function moveHammer(event) {
+  //   hammerX.value = event.clientX - 150;
+  //   hammerY.value = event.clientY
+  // }
+
+  // function hammerDown() {
+  //   hammerImg.value = hammerDownImg
+  // }
+
+  // function hammerUp() {
+  //   hammerImg.value = hammerUpImg
+  // }
+
+  function failAtack(){
+    //Incremento el total de muertes
+    totalFailMole.value++;
+    
+    //Reposiciono al topo
+    currentMole.value = getRandomMole();
+  }
+
   //Muerte de topo.
   function deathMole() {
     //Incremento el total de muertes
-    totalDeathMole ++;
+    totalDeathMole.value++;
 
     //Reposiciono al topo
     currentMole.value = getRandomMole();
   }
 
-  //Reinicioel juego
+  //Reinicio del juego
   function resetGame() {
-    totalDeathMole = 0;
+    totalDeathMole.value = 0;
+    totalFailMole.value = 0;
   }
 
   onMounted(() => {
@@ -36,58 +68,92 @@
     intervalId = setInterval(() => {
       currentMole.value = getRandomMole()
       console.log('Topo actual:', currentMole.value)
-    }, 10000)
+    }, 1000)
   })
 </script>
 
 <template>
-  <div class="img-base-background">
+  <div class="img-base-background no-select custom-cursor">
     <div class="overlay">
 
-       <audio autoplay loop>
-        <source src="@/assets/sounds/music-mole.mp3" type="audio/mpeg" />
-        Tu navegador no soporta audio
-      </audio>
+      <!-- <img
+        @mousedown="hammerDown"
+        @mouseup="hammerUp"
+        @click="failAtack()"
+        :src="hammerImg"
+        width="250px"
+        style="z-index: 2;"
+        :style="{ position: 'fixed', top: hammerY + 'px', left: hammerX + 'px', transform: 'translate(-50%, -50%)' }"
+        class="animate-pulse"
+      /> -->
+          <!-- <div @mousemove="moveHammer"></div> -->
 
-      <div class="container-fluid">
-          <div class="row mt-2">
+      <div>
+        <audio autoplay loop>
+          <source src="@/assets/sounds/music-mole.mp3" type="audio/mpeg" />
+          Tu navegador no soporta audio
+        </audio>
 
-            <div class="col-12 text-center">
-              <div class="card shadow-lg border-0 text-center p-1 m-auto" style="max-width: 500px; border-radius: 1rem;">
-                <div class="card-body">
-                  <h1 class="display-4 font-weight-bold text-dark">
-                    🐹 Mata al Topo
-                  </h1>
-                  <h2 class="mt-3 text-muted">
-                    Total de muertes: 
-                    <span class="badge badge-danger badge-pill">
-                      {{ totalDeathMole }}  
-                    </span>
+        <div class="container-fluid">
+            <div class="row mt-2">
+              <div class="col-12 text-center">
+                <div class="card shadow-lg border-0 text-center p-1 m-auto px-3" style=" border-radius: 1rem;">
+                  <div class="card-body">
+                    <!-- Título principal responsive -->
+                      <h1 class="d-none d-lg-block font-weight-bold text-dark">
+                        🐹 Mata al Topo
+                      </h1>
 
-                    <span title="Reiniciar" class="pointer" @click="resetGame()">
-                      🔄
-                    </span>
-                  </h2>
+                      <h5 class="d-block d-lg-none font-weight-bold text-dark">
+                        🐹 Mata al Topo
+                      </h5>
+
+                      <!-- Subtítulo responsive -->
+                      <h2 class="mt-3 text-muted h5 h-sm4 h-md3">
+                        Intentos: 
+                        <span class="badge badge-danger badge-pill pointer">
+                          {{ totalFailMole }}  
+                        </span>
+                        -
+                        Asiertos: 
+                        <span class="badge badge-success badge-pill pointer">
+                          {{ totalDeathMole }}  
+                        </span>
+
+                      
+
+                        <span title="Reiniciar" class="pointer ml-2" @click="resetGame()">
+                          🔄
+                        </span>
+                      </h2>
+                  </div>
                 </div>
               </div>
+          
+            <!-- Topos y animación-->
+            <div 
+              v-for="item in totalItems" 
+              :key="item" 
+              class="col-6 col-sm-4 col-md-4 col-xl-3 d-flex justify-content-center align-items-center mt-4">
+              
+              <img
+                v-if="currentMole === item"
+                src="@/assets/img/mole.png"
+                class="w-75 animate-pop"
+                @click="deathMole()"
+                draggable="false"
+              />
+              <img
+                v-else
+                @click="failAtack()"
+                src="@/assets/img/not-mole.png"
+                class="w-75 animate-pulse"
+                draggable="false"
+              />
             </div>
-         
-
-          <div v-for="item in totalItems" :key="item" class="col-3 d-flex justify-content-center align-items-center mt-4">
-            <img
-              v-if="currentMole === item"
-              src="@/assets/img/mole.png"
-              class="w-75 animate-pop"
-              @click="deathMole()"
-            />
-            <img
-              v-else
-              src="@/assets/img/not-mole.png"
-              class="w-75 animate-pulse"
-            />
-
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -97,6 +163,14 @@
 :global(html, body, #app) {
   height: 100%;
   margin: 0;
+}
+
+.custom-cursor {
+  cursor: url('@/assets/img/hammer.png'), auto;
+}
+
+.clicked-cursor {
+  cursor: url('@/assets/img/hammer-down.png'), auto;
 }
 
 .img-base-background {
@@ -146,4 +220,13 @@
 .animate-pop {
   animation: pop 0.3s ease-out;
 }
+
+/* Bloquea selección de texto */
+.no-select {
+  user-select: none;      /* Standard */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none;  /* IE/Edge */
+}
+
 </style>
