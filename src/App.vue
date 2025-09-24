@@ -3,7 +3,6 @@
   import hammerUpImg from '@/assets/img/hammer.png'
   import hammerDownImg from '@/assets/img/hammer-down.png'
 
-
   // Variables reactivas del componente
   const totalItems = ref(12);
 
@@ -13,33 +12,32 @@
   const totalDeathMole = ref(0);
   const totalFailMole = ref(0);
 
-  // const hammerX = ref(0)
-  // const hammerY = ref(0)
-
-  // const hammerImg = ref(hammerUpImg)
+  //Configuraciones de audio
+  const audio = ref(null) 
+  const isPlaying = ref(false)
 
   //Intervalos
-  let intervalId = null
+  let intervalId = null;
+
+  //Niveles de dificultad
+  const levels = [
+    { id: 1, name: '⚡️ Dios del Olimpo', value: 150 },
+    { id: 2, name: '🛡️ Guerrero Espartano', value: 300 },
+    { id: 3, name: '🪰 Mata Moscas', value: 600 },
+    { id: 4, name: '🦆 Cazador de Patos', value: 1000 },
+    { id: 5, name: '🦋 Mata Mariposas', value: 1500 },
+    { id: 6, name: '👑 Eres una Princesa', value: 2000 },
+  ]
+
+  // Nivel actual
+  const selectedLevelId = ref(3) // por defecto Mata Moscas
 
   // función para generar un número random entre 1 y totalItems
   function getRandomMole() {
     return Math.floor(Math.random() * totalItems.value) + 1
   }
 
-
-  // function moveHammer(event) {
-  //   hammerX.value = event.clientX - 150;
-  //   hammerY.value = event.clientY
-  // }
-
-  // function hammerDown() {
-  //   hammerImg.value = hammerDownImg
-  // }
-
-  // function hammerUp() {
-  //   hammerImg.value = hammerUpImg
-  // }
-
+  //Cada vez que se ataca fallidamente al topo
   function failAtack(){
     //Incremento el total de muertes
     totalFailMole.value++;
@@ -48,7 +46,7 @@
     currentMole.value = getRandomMole();
   }
 
-  //Muerte de topo.
+  //Cada vez que se ataca al topo correctamente
   function deathMole() {
     //Incremento el total de muertes
     totalDeathMole.value++;
@@ -63,18 +61,62 @@
     totalFailMole.value = 0;
   }
 
-  onMounted(() => {
-    // cada 500ms cambiamos el topo
+  //Ejecutar musica
+  function playMusic() {
+    if (audio.value && !isPlaying.value) {
+      audio.value.play().then(() => {
+        isPlaying.value = true
+      }).catch(err => {
+        console.warn('No se pudo reproducir el audio:', err)
+      })
+    }
+  }
+
+  //Permite el cambio del nivel
+  function changeLevel() {
+    //Almaceno el nuevo nivel en el local storage
+    localStorage.setItem('moleLevelId', selectedLevelId)
+
+   //Inicio el juego
+    startMoleInterval();
+  }
+
+  //Inicio del tiempo del movimiento del topo
+  function startMoleInterval() {
+    //Si existe el invervalo de tiempo lo destruyo
+    if (intervalId) {
+      clearInterval(intervalId);
+    } 
+
+    //Obtengo los datos del nivel configurado
+    const level = levels.find(l => l.id === selectedLevelId.value)
+
+    //Ejecuto un nuevo tiempo.
     intervalId = setInterval(() => {
       currentMole.value = getRandomMole()
-      console.log('Topo actual:', currentMole.value)
-    }, 1000)
+    }, level.value) // Diferentes nivels
+  }
+
+  onMounted(() => {
+    //Si existe el nivel configurado en el sistema del navegador
+    const savedId = localStorage.getItem('moleLevelId');
+
+    //Busco mi nivel guardado y obtengo el id para almacenarlo en el nivel actual
+    if (savedId && levels.some(l => l.id === savedId)) {
+      selectedLevelId.value = savedId
+    } else {
+      selectedLevelId.value = 3
+    }
+
+    //Inicio el juego
+    startMoleInterval();
   })
+
 </script>
 
 <template>
   <div class="img-base-background no-select custom-cursor">
-    <div class="overlay">
+    <div class="overlay" @click="playMusic" @touchstart="playMusic">
 
       <!-- <img
         @mousedown="hammerDown"
@@ -89,19 +131,20 @@
           <!-- <div @mousemove="moveHammer"></div> -->
 
       <div>
-        <audio autoplay loop>
-          <source src="@/assets/sounds/music-mole.mp3" type="audio/mpeg" />
+        <audio ref="audio" loop>
+          <source src="@/assets/sounds/music-mole.mp3" type="audio/mpeg">
           Tu navegador no soporta audio
         </audio>
+        
 
         <div class="container-fluid">
             <div class="row mt-2">
               <div class="col-12 text-center">
-                <div class="card shadow-lg border-0 text-center p-1 m-auto px-3" style=" border-radius: 1rem;">
-                  <div class="card-body">
+                <div class="card shadow-lg border-0 text-center m-auto px-3" style=" border-radius: 1rem;">
+                  <div class="card-body py-1 pb-2">
                     <!-- Título principal responsive -->
                       <h1 class="d-none d-lg-block font-weight-bold text-dark">
-                        🐹 Mata al Topo
+                        🐹 Mata al Topo 
                       </h1>
 
                       <h5 class="d-block d-lg-none font-weight-bold text-dark">
@@ -120,12 +163,18 @@
                           {{ totalDeathMole }}  
                         </span>
 
-                      
-
                         <span title="Reiniciar" class="pointer ml-2" @click="resetGame()">
                           🔄
-                        </span>
+                        </span>                       
                       </h2>
+
+                      <select class="form-control level-select m-auto mt-2" 
+                        v-model="selectedLevelId" 
+                        @change="changeLevel()">
+                        <option v-for="level in levels" :key="level.id" :value="level.id">
+                          {{ level.name }} ({{ (level.value / 1000).toFixed(1) }}) s
+                        </option>
+                      </select>
                   </div>
                 </div>
               </div>
@@ -227,6 +276,22 @@
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none;  /* IE/Edge */
+}
+
+.level-select {
+  width: 100%; /* ancho por defecto móvil */
+}
+
+@media (min-width: 768px) { /* tablet */
+  .level-select {
+    width: 50%;
+  }
+}
+
+@media (min-width: 992px) { /* desktop */
+  .level-select {
+    width: 25%;
+  }
 }
 
 </style>

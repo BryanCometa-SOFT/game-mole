@@ -15,4 +15,8 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  base: './',       // importante para GitHub Pages
+  build: {
+    outDir: 'docs', // genera el build directo en /docs
+  }
 })
